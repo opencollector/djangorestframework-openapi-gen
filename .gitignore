@@ -1,0 +1,11 @@
+/.coverage
+/.eggs
+/.mypy_cache
+/.pytest_cache
+/.tox
+/.venv
+/dist
+*.egg-info
+*.py[co]
+__pycache__/
+.vscode/

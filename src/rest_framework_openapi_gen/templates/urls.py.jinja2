@@ -1,0 +1,8 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+{%- for endpoint in endpoints %}
+    path({{ endpoint.path|render_as_django_url_pattern|repr|black }}, views.{{ endpoint.class_name }}.as_view()),
+{%- endfor %}
+]

@@ -1,0 +1,21 @@
+from rest_framework import fields, serializers
+{%- for ser_descr in serializers -%}
+{%- if ser_descr.schema.type_ == "object" %}
+
+
+class {{ ser_descr.serializer_class_name }}(serializers.Serializer):
+    {%- if ser_descr.schema.description %}
+    """
+    {% for l in ser_descr.schema.description.split("\n") -%}
+    {{ l }}
+    {%- endfor %}
+    """
+    {%- endif %}
+    {%- for pname, prop in ser_descr.schema.properties.items() %}
+    {{ pname }} = {{ prop|render_property(pname) }}
+    {%- if prop.description %}
+    """{{ prop.description|replace("\n", " ")|trim }}"""
+    {%- endif %}
+    {%- endfor %}
+{%- endif -%}
+{%- endfor %}

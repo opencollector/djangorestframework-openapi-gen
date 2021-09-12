@@ -1,0 +1,13 @@
+---
+title: 001
+paths:
+  "/pets":
+    get:
+      descriptino: Returns all the pets
+      responses:
+        "200":
+          description: "A list of pets."
+          schema:
+            type: array
+            items:
+              type: string

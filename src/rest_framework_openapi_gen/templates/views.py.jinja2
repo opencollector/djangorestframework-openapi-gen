@@ -1,0 +1,70 @@
+{%- if individual_handlers -%}
+from rest_framework.descriptors import api_view
+{% endif -%}
+from rest_framework.views import APIView
+from rest_framework.request import Request
+from rest_framework.response import Response
+
+from .serializers import (
+{%- for ser_descr in serializers.values() -%}
+{%- if ser_descr.schema.type_ == "object" %}
+    {{ ser_descr.serializer_class_name }},
+{%- endif -%}
+{%- endfor %}
+)
+{% for endpoint in endpoints %}
+
+class {{ endpoint.class_name }}(APIView):
+    """
+    {{ endpoint.path.path }}
+    """
+    {%- for verb_descr in endpoint.verbs %}
+
+    def {{ verb_descr.verb.verb.value }}(
+        self,
+        request: Request,
+        {%- for p in verb_descr.verb.parameters -%}
+        {% if p.in_ == "path" %}
+        {{ p.name }}: str,
+        {%- endif -%}
+        {%- endfor %}
+    ) -> Response:
+        """
+        {% for l in verb_descr.verb.description.strip().split("\n") -%}
+        {{- l }}
+        {% endfor %}
+        :appgen_function_name: {{ verb_descr.verb.function_name }}
+        """
+        {%- for p in verb_descr.verb.parameters %}
+        {%- if p.in__ == "query" -%}
+        {{ p.name }} = request.query_params[{{ p.name|repr|black }}]
+        {%- elif p.in__ == "query" -%}
+        {{ p.name }} = request.query_params[{{ p|repr|black }}]
+        {%- endif -%}
+        {% endfor %}
+        {% if verb_descr.serializer_descriptor -%}
+        {%- if verb_descr.serializer_descriptor.many -%}
+        serializer = {{ serializers[verb_descr.serializer_descriptor.many].serializer_class_name }}()
+        {%- else -%}
+        serializer = {{ verb_descr.serializer_descriptor.serializer_class_name }}()
+        {%- endif %}
+        return Response(serializer.data)
+        {%- else -%}
+        return Response(None)
+        {%- endif -%}
+    {% endfor %}
+{% endfor %}
+{% for path, verb_descr in individual_handlers %}
+
+
+@api_view([{{ verb_descr.verb.verb|repr|black }}])
+def {verb_descr}(
+    request: Request,
+    {%- for p in verb_descr.verb.parameters -%}
+    {% if p.in_ == "path" %}
+    {{ p.name }}: str,
+    {%- endif -%}
+    {%- endfor %}
+) -> Response:
+    ...
+{% endfor %}
